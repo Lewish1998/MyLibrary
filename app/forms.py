@@ -6,17 +6,6 @@ from app import db
 from app.models import User
 
 
-# Forms
-class UserForm(FlaskForm):
-    name = StringField('Name', validators=[DataRequired()])
-    submit = SubmitField('Submit')
-
-class BookForm(FlaskForm):
-    title = StringField('Title', validators=[DataRequired()])
-    author = StringField('Author', validators=[DataRequired()])
-    user_id = IntegerField('User ID (optional)', validators=[DataRequired()])
-    submit = SubmitField('Submit')
-
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
@@ -42,3 +31,6 @@ class RegistrationForm(FlaskForm):
             User.email == email.data))
         if user is not None:
             raise ValidationError('Please use a different email address.')
+        
+# class AddBook(FlaskForm):
+    

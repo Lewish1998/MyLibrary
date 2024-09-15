@@ -11,8 +11,8 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), nullable=False)
     bio = db.Column(db.String(264), nullable=True)
-    # created_at = db.Column(DateTime(timezone=True), server_default=func.now()) # Unsure if will work
-    # updated_at = db.Column(DateTime(timezone=True), onupdate=func.now()) # Unsure if will work
+    created_at = db.Column(db.DateTime(timezone=True), server_default=func.now()) # Unsure if will work
+    updated_at = db.Column(db.DateTime(timezone=True), onupdate=func.now()) # Unsure if will work
     password_hash = db.Column(db.String(264), nullable=False)
 
     def set_password(self, password):
@@ -28,6 +28,34 @@ def load_user(id):
 class Book(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(150), nullable=False)
-    author = db.Column(db.String(100), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    user = db.relationship('User', backref='books')
+    description = db.Column(db.Text, nullable=True)
+    pages = db.Column(db.Integer, nullable=True)
+    isbn = db.Column(db.String(13), nullable=True)
+    author_id = db.Column(db.Integer, db.ForeignKey('author.id'), nullable=True)
+    genre_id = db.Column(db.Integer, db.ForeignKey('genre.id'), nullable=True)
+    added = db.Column(db.DateTime(timezone=True), server_default=func.now())
+    # Relationships
+    author = db.relationship('Author', back_populates='books')
+    genre = db.relationship('Genre', back_populates='books')
+    user_books = db.relationship('UserBook', back_populates='book')
+
+class Genre(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    # Relationship to books
+    books = db.relationship('Book', back_populates='genre')
+
+class Author(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    # Relationship to books
+    books = db.relationship('Book', back_populates='author')
+
+class UserBook(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    book_id = db.Column(db.Integer, db.ForeignKey('book.id'), nullable=False)
+    current_page = db.Column(db.Integer, nullable=False, default=0)
+    # Relationships
+    user = db.relationship('User', back_populates='user_books')
+    book = db.relationship('Book', back_populates='user_books')
