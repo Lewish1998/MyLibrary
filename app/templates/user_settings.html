@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>User Settings</h1>
+    <form action="" method="post">
+        {{ form.hidden_tag() }}
+
+        <p>
+            {{ form.username.label }} (<i>Must be between 5 and 25 characters</i>)<br>
+            {{ form.username(size=32) }}<br>
+            {% for error in form.username.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+
+        <p>
+            {{ form.email.label }} (<i>Email cannot be changed</i>)<br>
+            {{ form.email(size=32, readonly=True) }}<br> <!-- Set email field to read-only -->
+            {% for error in form.email.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+
+        <p>
+            {{ form.current_password.label }} (<i>Enter current password to make changes</i>)<br>
+            {{ form.current_password(size=32) }}<br>
+            {% for error in form.current_password.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+
+        <p>
+            {{ form.new_password.label }} (<i>Optional: Enter new password</i>)<br>
+            {{ form.new_password(size=32) }}<br>
+            {% for error in form.new_password.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+
+        <p>
+            {{ form.new_password2.label }} (<i>Repeat new password</i>)<br>
+            {{ form.new_password2(size=32) }}<br>
+            {% for error in form.new_password2.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+
+        <p>{{ form.submit() }}</p>
+    </form>
+{% endblock content %}
+
+{% block scripts %}
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            let form = document.querySelector('form');
+            let initialValues = {};
+            form.querySelectorAll('input').forEach(input => {
+                initialValues[input.name] = input.value;
+            });
+        
+            form.addEventListener('submit', function(e) {
+                let changed = false;
+                form.querySelectorAll('input').forEach(input => {
+                    if (initialValues[input.name] !== input.value) {
+                        changed = true;
+                    }
+                });
+        
+                if (changed) {
+                    if (!confirm("Are you sure you want to update your settings?")) {
+                        e.preventDefault();
+                    }
+                } else {
+                    alert("No changes were made.");
+                    e.preventDefault();  // Prevent submission if nothing changed
+                }
+            });
+        });
+    </script>
+{% endblock scripts %}

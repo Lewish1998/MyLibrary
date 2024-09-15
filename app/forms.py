@@ -1,21 +1,11 @@
 from flask_wtf import FlaskForm
 from wtforms import IntegerField, StringField, PasswordField, BooleanField, SubmitField
-from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
+from wtforms.validators import ValidationError, DataRequired, Email, EqualTo, Length, Optional
 import sqlalchemy as sa
 from app import db
 from app.models import User
+from flask_login import current_user
 
-
-# Forms
-class UserForm(FlaskForm):
-    name = StringField('Name', validators=[DataRequired()])
-    submit = SubmitField('Submit')
-
-class BookForm(FlaskForm):
-    title = StringField('Title', validators=[DataRequired()])
-    author = StringField('Author', validators=[DataRequired()])
-    user_id = IntegerField('User ID (optional)', validators=[DataRequired()])
-    submit = SubmitField('Submit')
 
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
@@ -24,7 +14,7 @@ class LoginForm(FlaskForm):
     submit = SubmitField('Sign In')
 
 class RegistrationForm(FlaskForm):
-    username = StringField('Username', validators=[DataRequired()])
+    username = StringField('Username', validators=[DataRequired(), Length(min=5, max=25)])
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     password2 = PasswordField(
@@ -42,3 +32,27 @@ class RegistrationForm(FlaskForm):
             User.email == email.data))
         if user is not None:
             raise ValidationError('Please use a different email address.')
+        
+class UserSettingsForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired(), Length(min=5, max=25)])
+    email = StringField('Email', render_kw={'readonly': True})  # Email is now read-only
+    current_password = PasswordField('Current Password', validators=[DataRequired()])  # For verifying current password
+    new_password = PasswordField('New Password', validators=[Optional()])
+    new_password2 = PasswordField(
+        'Repeat New Password', validators=[Optional(), EqualTo('new_password')])
+    submit = SubmitField('Update Settings')
+
+    def validate_username(self, username):
+        if username.data != current_user.username:  # Ensure no duplicate username
+            user = db.session.scalar(sa.select(User).where(User.username == username.data))
+            if user is not None:
+                raise ValidationError('Please use a different username.')
+
+    def validate_current_password(self, current_password):
+        if not current_user.check_password(current_password.data):  # Ensure current password matches
+            raise ValidationError('Current password is incorrect.')
+
+
+
+# class AddBook(FlaskForm):
+    
