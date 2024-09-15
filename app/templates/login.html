@@ -12,6 +12,7 @@
             {{ form.password.label }}<br>
             {{ form.password(size=32) }}
         </p>
+        <p>{{ form.submit() }}</p>
     </form>
     <p>No account? Register <a href="{{ url_for('register') }}">here</a></p>
 {% endblock content %}

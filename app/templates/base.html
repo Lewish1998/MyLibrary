@@ -7,11 +7,12 @@
 </head>
 <body>
     <nav>
-        My Library
+        My Library |
         <a href="{{ url_for('index') }}">Home</a>
         {% if current_user.is_anonymous %}
         <a href="{{ url_for('login') }}">Login</a>
         {% else %}
+        <a href="{{ url_for('user_settings') }}">Settings</a>
         <a href="{{ url_for('logout') }}">Logout</a>
         {% endif %}
     </nav>
@@ -26,5 +27,6 @@
     {% endif %}
     {% endwith %}
     {% block content %}{% endblock content %}
+    {% block scripts %}{% endblock scripts %}
 </body>
 </html>

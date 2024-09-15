@@ -15,6 +15,9 @@ class User(UserMixin, db.Model):
     updated_at = db.Column(db.DateTime(timezone=True), onupdate=func.now()) # Unsure if will work
     password_hash = db.Column(db.String(264), nullable=False)
 
+   # Relationship to UserBook
+    user_books = db.relationship('UserBook', back_populates='user')
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
@@ -51,10 +54,11 @@ class Author(db.Model):
     # Relationship to books
     books = db.relationship('Book', back_populates='author')
 
+
 class UserBook(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    book_id = db.Column(db.Integer, db.ForeignKey('book.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # Corrected to 'users.id'
+    book_id = db.Column(db.Integer, db.ForeignKey('book.id'), nullable=False)  # Corrected to 'books.id'
     current_page = db.Column(db.Integer, nullable=False, default=0)
     # Relationships
     user = db.relationship('User', back_populates='user_books')

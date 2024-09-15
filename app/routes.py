@@ -1,6 +1,6 @@
 from app import app, db
 from app.models import User, Book
-from app.forms import RegistrationForm, LoginForm
+from app.forms import RegistrationForm, LoginForm, UserSettingsForm
 from flask import render_template, redirect, url_for, flash
 from flask_login import current_user, login_user, login_required, logout_user
 import sqlalchemy as sa
@@ -46,7 +46,30 @@ def register():
         return redirect(url_for('login'))
     return render_template('register.html', form=form)
 
+@app.errorhandler(404)
+def not_found(err):
+    return render_template('404.html')
 
+@app.route('/user-settings', methods=['GET', 'POST'])
+@login_required
+def user_settings():
+    form = UserSettingsForm(obj=current_user)
+
+    if form.validate_on_submit():
+        # Check if username has changed
+        if form.username.data != current_user.username:
+            current_user.username = form.username.data
+        
+        # Handle password change
+        if form.new_password.data:
+            current_user.set_password(form.new_password.data)
+
+        # Update the user if any field has changed
+        db.session.commit()
+        flash('Your changes have been saved.')
+        return redirect(url_for('user_settings'))
+
+    return render_template('user_settings.html', form=form)
 
 
 
