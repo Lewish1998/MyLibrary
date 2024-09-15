@@ -71,6 +71,29 @@ def user_settings():
 
     return render_template('user_settings.html', form=form)
 
+@app.route('/test', methods=['GET', 'POST'])
+@login_required
+def test():
+    return render_template('test.html')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # # CRUD Operations for Users
