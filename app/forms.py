@@ -52,7 +52,7 @@ class UserSettingsForm(FlaskForm):
         if not current_user.check_password(current_password.data):  # Ensure current password matches
             raise ValidationError('Current password is incorrect.')
 
-
-
-# class AddBook(FlaskForm):
+class SearchBook(FlaskForm):
+    title = StringField('Title', validators=[DataRequired()])
+    submit = SubmitField('Search')
     

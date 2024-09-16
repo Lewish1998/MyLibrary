@@ -1,10 +1,15 @@
 from app import app, db
 from app.models import User, Book
-from app.forms import RegistrationForm, LoginForm, UserSettingsForm
+from app.forms import RegistrationForm, LoginForm, UserSettingsForm, SearchBook
 from flask import render_template, redirect, url_for, flash
 from flask_login import current_user, login_user, login_required, logout_user
 import sqlalchemy as sa
+import requests
+import os
+import dotenv
 
+dotenv.load_dotenv()
+email = os.environ.get('EMAIL')
 
 @app.route('/')
 @login_required
@@ -29,6 +34,7 @@ def login():
     return render_template('login.html', form=form)
 
 @app.route('/logout')
+@login_required
 def logout():
     logout_user()
     return redirect(url_for('index'))
@@ -71,10 +77,40 @@ def user_settings():
 
     return render_template('user_settings.html', form=form)
 
+@app.route('/search', methods=['GET', 'POST'])
+@login_required
+def search():
+    form = SearchBook()
+    if form.validate_on_submit():
+        book = requests.get('https://openlibrary.org/search.json?q=the+lord+of+the+rings')
+        return book.json()#url_for('search', book=book)
+    return render_template('search.html', form=form)
+
+
 @app.route('/test', methods=['GET', 'POST'])
 @login_required
 def test():
-    return render_template('test.html')
+    isbn = 1526617161
+    api_url = f"https://openlibrary.org/api/books?bibkeys=ISBN:{isbn}&format=json&jscmd=data"
+    headers = {
+        "User-Agent": "MyLibrary/1.0 ({email})"
+    }
+    response = requests.get(api_url, headers=headers)
+    
+    if response.status_code == 200:
+        book_data = response.json()
+        if f'ISBN:{isbn}' in book_data:
+            book_info = book_data[f'ISBN:{isbn}']
+            book = {
+                'title': book_info.get('title'),
+                'description': book_info.get('notes'),
+                'pages': book_info.get('number_of_pages'),
+                'isbn': isbn,
+                'author': ', '.join([author['name'] for author in book_info.get('authors', [])]),
+                'genre': book_info.get('subjects', [{'name': 'Unknown'}])[0]['name']
+            }
+
+    return render_template('test.html', book=book, email=email)
 
 
 
