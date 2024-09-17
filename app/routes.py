@@ -1,12 +1,13 @@
 from app import app, db
 from app.models import User, Book
-from app.forms import RegistrationForm, LoginForm, UserSettingsForm, SearchBook
+from app.forms import RegistrationForm, LoginForm, UserSettingsForm, SearchBook, AddBook
 from flask import render_template, redirect, url_for, flash
 from flask_login import current_user, login_user, login_required, logout_user
 import sqlalchemy as sa
 import requests
 import os
 import dotenv
+from flask import request, jsonify
 
 dotenv.load_dotenv()
 email = os.environ.get('EMAIL')
@@ -15,7 +16,6 @@ email = os.environ.get('EMAIL')
 @login_required
 def index():
     # users = User.query.all()
-    # books = Book.query.all()
     return render_template('index.html') #users=users, books=books)
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -77,40 +77,85 @@ def user_settings():
 
     return render_template('user_settings.html', form=form)
 
-@app.route('/search', methods=['GET', 'POST'])
+@app.route('/add_book', methods=['GET', 'POST'])
 @login_required
-def search():
-    form = SearchBook()
+def add_book():
+    form = AddBook()
     if form.validate_on_submit():
-        book = requests.get('https://openlibrary.org/search.json?q=the+lord+of+the+rings')
-        return book.json()#url_for('search', book=book)
-    return render_template('search.html', form=form)
+        book = Book(
+            title=form.title.data,
+            description=form.description.data,
+            pages=form.pages.data,
+            isbn=form.isbn.data,
+            added_by=current_user.id
+        )
+        db.session.add(book)
+        db.session.commit()
+        flash('Book added.')
+        return redirect(url_for('add_book'))
+    return render_template('add_book.html', form=form)
 
-
-@app.route('/test', methods=['GET', 'POST'])
+@app.route('/books', methods=['GET', 'POST'])
 @login_required
-def test():
-    isbn = 1526617161
-    api_url = f"https://openlibrary.org/api/books?bibkeys=ISBN:{isbn}&format=json&jscmd=data"
-    headers = {
-        "User-Agent": "MyLibrary/1.0 ({email})"
-    }
-    response = requests.get(api_url, headers=headers)
-    
-    if response.status_code == 200:
-        book_data = response.json()
-        if f'ISBN:{isbn}' in book_data:
-            book_info = book_data[f'ISBN:{isbn}']
-            book = {
-                'title': book_info.get('title'),
-                'description': book_info.get('notes'),
-                'pages': book_info.get('number_of_pages'),
-                'isbn': isbn,
-                'author': ', '.join([author['name'] for author in book_info.get('authors', [])]),
-                'genre': book_info.get('subjects', [{'name': 'Unknown'}])[0]['name']
-            }
+def get_books():
+    books = Book.query.all()
+    return render_template('books.html', books=books, current_user=current_user)
 
-    return render_template('test.html', book=book, email=email)
+
+
+# # Not using these either... No API for you
+# @app.route('/search', methods=['GET', 'POST'])
+# @login_required
+# def search():
+#     form = SearchBook()
+#     if form.validate_on_submit():
+#         book = requests.get('https://openlibrary.org/search.json?q=the+lord+of+the+rings')
+#         return book.json()#url_for('search', book=book)
+#     return render_template('search.html', form=form)
+
+
+# @app.route('/test', methods=['GET', 'POST'])
+# @login_required
+# def test():
+#     if request.is_json:  # Ensure request contains JSON
+#         isbn = request.json.get('isbn')
+
+#         # Fetch book data using ISBN
+#         response = requests.get(f'https://openlibrary.org/api/books?bibkeys=ISBN:{isbn}&format=json&jscmd=data')
+        
+#         if response.status_code == 200:
+#             book_data = response.json()
+#             if book_data:
+#                 return jsonify(book_data)
+#             else:
+#                 return jsonify({'error': 'No data found for the provided ISBN'}), 404
+#         else:
+#             return jsonify({'error': 'Book not found'}), 404
+#     else:
+#         return jsonify({'error': 'Unsupported media type, please send JSON'}), 415
+
+
+#     # isbn = 1526617161
+#     # api_url = f"https://openlibrary.org/api/books?bibkeys=ISBN:{isbn}&format=json&jscmd=data"
+#     # headers = {
+#     #     "User-Agent": "MyLibrary/1.0 ({email})"
+#     # }
+#     # response = requests.get(api_url, headers=headers)
+    
+#     if response.status_code == 200:
+#         book_data = response.json()
+#         if f'ISBN:{isbn}' in book_data:
+#             book_info = book_data[f'ISBN:{isbn}']
+#             book = {
+#                 'title': book_info.get('title'),
+#                 'description': book_info.get('notes'),
+#                 'pages': book_info.get('number_of_pages'),
+#                 'isbn': isbn,
+#                 'author': ', '.join([author['name'] for author in book_info.get('authors', [])]),
+#                 'genre': book_info.get('subjects', [{'name': 'Unknown'}])[0]['name']
+#             }
+
+#     return render_template('test.html', book=book, email=email)
 
 
 

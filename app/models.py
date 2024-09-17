@@ -37,6 +37,7 @@ class Book(db.Model):
     author_id = db.Column(db.Integer, db.ForeignKey('author.id'), nullable=True)
     genre_id = db.Column(db.Integer, db.ForeignKey('genre.id'), nullable=True)
     added = db.Column(db.DateTime(timezone=True), server_default=func.now())
+    added_by = db.Column(db.Integer, db.ForeignKey('user.id'))
     # Relationships
     author = db.relationship('Author', back_populates='books')
     genre = db.relationship('Genre', back_populates='books')

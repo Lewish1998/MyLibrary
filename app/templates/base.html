@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Library</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
 </head>
 <body>
     <nav>
@@ -12,8 +13,8 @@
         {% if current_user.is_anonymous %}
         <a href="{{ url_for('login') }}">Login</a>
         {% else %}
-        <a href="{{ url_for('search') }}">Search</a>
-        <a href="{{ url_for('test') }}">Test</a>
+        <a href="{{ url_for('add_book') }}">Add Book</a>
+        <a href="{{ url_for('get_books') }}">Books</a>
         <a href="{{ url_for('user_settings') }}">Settings</a>
         <a href="{{ url_for('logout') }}">Logout</a>
         {% endif %}

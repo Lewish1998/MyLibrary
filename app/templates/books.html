@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Books</h1>
+{% for book in books %}
+<div>
+    id: {{ book.id }}
+    added_by: {{ book.added_by }}
+    <h3>{{ book.title }}</h3>
+    {% if book.description %}
+        <p>Description: {{ book.description }}</p>
+    {% endif %}
+    <p>Pages: {{ book.pages }}</p>
+    {% if book.isbn %}
+    <p>ISBN: {{ book.isbn }}</p>
+    {% endif %}
+    {% if book.added_by == current_user.id %}
+    <a href="/edit_book">Edit</a>
+    {% endif %}
+</div>
+{% endfor %}
+{% endblock content %}

@@ -17,8 +17,7 @@ class RegistrationForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired(), Length(min=5, max=25)])
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
-    password2 = PasswordField(
-        'Repeat Password', validators=[DataRequired(), EqualTo('password')])
+    password2 = PasswordField('Repeat Password', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Register')
 
     def validate_username(self, username):
@@ -38,8 +37,7 @@ class UserSettingsForm(FlaskForm):
     email = StringField('Email', render_kw={'readonly': True})  # Email is now read-only
     current_password = PasswordField('Current Password', validators=[DataRequired()])  # For verifying current password
     new_password = PasswordField('New Password', validators=[Optional()])
-    new_password2 = PasswordField(
-        'Repeat New Password', validators=[Optional(), EqualTo('new_password')])
+    new_password2 = PasswordField('Repeat New Password', validators=[Optional(), EqualTo('new_password')])
     submit = SubmitField('Update Settings')
 
     def validate_username(self, username):
@@ -51,6 +49,13 @@ class UserSettingsForm(FlaskForm):
     def validate_current_password(self, current_password):
         if not current_user.check_password(current_password.data):  # Ensure current password matches
             raise ValidationError('Current password is incorrect.')
+        
+class AddBook(FlaskForm):
+    title = StringField('Title', validators=[DataRequired()])
+    description = StringField('Description', validators=[Optional()])
+    pages = StringField('Pages', validators=[Optional()])
+    isbn = StringField('ISBN', validators=[Optional()])
+    submit = SubmitField('Submit')
 
 class SearchBook(FlaskForm):
     title = StringField('Title', validators=[DataRequired()])

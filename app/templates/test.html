@@ -1,13 +1,46 @@
 {% extends "base.html" %}
 {% block content %}
-    <h1>Test Page</h1>
-    <div>
-        <h3>{{ book.title }}</h3>
-        <p>Description: {{ book.description }} NOT WORKING</p>
-        <p>Pages: {{ book.pages }}</p>
-        <p>ISBN: {{ book.isbn }}</p>
-        <p>Author: {{ book.author }}</p>
-        <p>Genre: {{ book.genre }}</p>
-    </div>
- 
+<h2>Scan Book Barcode</h2>
+<div id="scanner-container"></div>
+<p>ISBN: <span id="isbn"></span></p>
 {% endblock content %}
+{% block scripts %}
+<script>
+    // Capture the ISBN once barcode is detected
+    Quagga.onDetected(function(result) {
+      var isbn = result.codeResult.code;
+      document.getElementById('isbn').textContent = isbn;
+  
+      // Optional: send ISBN to your backend to fetch book details
+      fetch('/add-book', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',  // Set content type to JSON
+          'Accept': 'application/json'         // Optional: ensure response is JSON
+        },
+        body: JSON.stringify({ isbn: isbn })   // Send the ISBN as JSON
+      }).then(response => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          return response.json().then(err => { throw new Error(err.error); });
+        }
+      }).then(data => {
+        console.log('Book data received:', data);
+        // Handle book data, e.g., display on page
+      }).catch(error => {
+        console.error('Error:', error);
+      });
+    });
+</script>  
+{% endblock scripts %}
+
+<!-- <h1>Test Page</h1>
+<div>
+    <h3>{{ book.title }}</h3>
+    <p>Description: {{ book.description }} NOT WORKING</p>
+    <p>Pages: {{ book.pages }}</p>
+    <p>ISBN: {{ book.isbn }}</p>
+    <p>Author: {{ book.author }}</p>
+    <p>Genre: {{ book.genre }}</p>
+</div> -->
