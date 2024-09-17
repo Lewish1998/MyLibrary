@@ -1,5 +1,7 @@
 {% extends "base.html" %}
-
+{% block styling %}
+<link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+{% endblock styling %}
 {% block content %}
     <h1>Sign In</h1>
     <form action="" method="post" novalidate>
@@ -13,6 +15,6 @@
             {{ form.password(size=32) }}
         </p>
         <p>{{ form.submit() }}</p>
+        <p>No account? Register <a href="{{ url_for('register') }}">here</a></p>
     </form>
-    <p>No account? Register <a href="{{ url_for('register') }}">here</a></p>
 {% endblock content %}

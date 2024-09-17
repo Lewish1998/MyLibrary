@@ -4,6 +4,7 @@
     --light-grey: #BCB8B1;
     --white: #F4F3EE;
     --highlight: #E0AFA0;
+    --highlight-dark: #c9302c;
 }
 
 * {
@@ -12,7 +13,7 @@
     color: var(--black);
 }
 a {
-    color: var(--grey);  
+    color: var(--highlight-dark);  
 }
 a:hover {
     color: var(--highlight);

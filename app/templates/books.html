@@ -1,8 +1,12 @@
 {% extends "base.html" %}
+{% block styling %}
+<link rel="stylesheet" href="{{ url_for('static', filename='books.css') }}">
+{% endblock styling %}
 {% block content %}
 <h1>Books</h1>
+<div class="books-container">
 {% for book in books %}
-<div>
+<div class="book-item">
     <h3>{{ book.title }}</h3>
     {% if book.description %}
         <p>Description: {{ book.description }}</p>
@@ -24,4 +28,5 @@
     {% endif %}
 </div>
 {% endfor %}
+</div>
 {% endblock content %}

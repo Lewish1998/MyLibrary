@@ -1,0 +1,52 @@
+/* Form container styling */
+form {
+    background-color: var(--white);
+    border: 1px solid var(--grey);
+    border-radius: 5px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 600px; /* Adjust width as needed */
+    margin: 0 auto; /* Center the form */
+}
+
+/* Form elements styling */
+p {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+input[type="text"], 
+input[type="number"], 
+textarea {
+    width: 100%; /* Full width input */
+    padding: 10px;
+    border: 1px solid var(--grey);
+    border-radius: 5px;
+    box-sizing: border-box; /* Ensures padding and border are included in the element's width and height */
+}
+
+input[type="submit"] {
+    background-color: var(--highlight-dark);
+    color: var(--white);
+    border: none;
+    border-radius: 5px;
+    padding: 10px 15px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+input[type="submit"]:hover {
+    background-color: var(--highlight); /* Darken on hover */
+}
+
+/* Error styling */
+.field-error {
+    color: red;
+    font-size: 0.875em;
+}
