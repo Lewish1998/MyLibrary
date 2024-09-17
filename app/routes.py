@@ -1,17 +1,22 @@
 from app import app, db
 from app.models import User, Book
-from app.forms import RegistrationForm, LoginForm, UserSettingsForm
+from app.forms import RegistrationForm, LoginForm, UserSettingsForm, AddBook, EditBook
 from flask import render_template, redirect, url_for, flash
 from flask_login import current_user, login_user, login_required, logout_user
 import sqlalchemy as sa
+import requests
+import os
+import dotenv
+from flask import request, jsonify
 
+dotenv.load_dotenv()
+email = os.environ.get('EMAIL')
 
 @app.route('/')
 @login_required
 def index():
-    # users = User.query.all()
-    # books = Book.query.all()
-    return render_template('index.html') #users=users, books=books)
+    books = Book.query.all()
+    return render_template('index.html', books=books, current_user=current_user)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -29,6 +34,7 @@ def login():
     return render_template('login.html', form=form)
 
 @app.route('/logout')
+@login_required
 def logout():
     logout_user()
     return redirect(url_for('index'))
@@ -71,91 +77,61 @@ def user_settings():
 
     return render_template('user_settings.html', form=form)
 
-@app.route('/test', methods=['GET', 'POST'])
+@app.route('/add_book', methods=['GET', 'POST'])
 @login_required
-def test():
-    return render_template('test.html')
+def add_book():
+    form = AddBook()
+    if form.validate_on_submit():
+        book = Book(
+            title=form.title.data,
+            description=form.description.data,
+            pages=form.pages.data,
+            isbn=form.isbn.data,
+            added_by=current_user.id
+        )
+        db.session.add(book)
+        db.session.commit()
+        flash('Book added.')
+        return redirect(url_for('get_books'))
+    return render_template('add_book.html', form=form)
 
+@app.route('/books', methods=['GET', 'POST'])
+@login_required
+def get_books():
+    books = Book.query.all()
+    users = User.query.all()
+    return render_template('books.html', books=books, current_user=current_user, users=users)
 
+@app.route('/edit_book/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_book(id):
+    book = Book.query.get(id)
+    if not book:
+        flash('Book not found', 'error')
+        return redirect(url_for('get_books'))
+    
+    form = EditBook(obj=book)
+    if form.validate_on_submit():
+        book.title = form.title.data
+        book.description = form.description.data
+        book.pages = form.pages.data
+        book.isbn = form.isbn.data
+        book.added_by = current_user.id
+        db.session.commit()
+        flash('Book updated', 'success')
+        return redirect(url_for('get_books'))
 
+    return render_template('edit_book.html', form=form, book=book)
 
+@app.route('/delete_book/<int:id>', methods=['POST'])
+@login_required
+def delete_book(id):
+    book = Book.query.get(id)
+    if not book:
+        flash('Book not found', 'error')
+        return redirect(url_for('get_books'))
+    db.session.delete(book)
+    db.session.commit()
+    flash('Book deleted', 'success')
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# # CRUD Operations for Users
-# @app.route('/user/new', methods=['GET', 'POST'])
-# def new_user():
-#     form = UserForm()
-#     if form.validate_on_submit():
-#         user = User(name=form.name.data)
-#         db.session.add(user)
-#         db.session.commit()
-#         flash('User created successfully!', 'success')
-#         return redirect(url_for('index'))
-#     return render_template('user_form.html', form=form)
-
-# @app.route('/user/<int:id>/edit', methods=['GET', 'POST'])
-# def edit_user(id):
-#     user = User.query.get_or_404(id)
-#     form = UserForm(obj=user)
-#     if form.validate_on_submit():
-#         user.name = form.name.data
-#         db.session.commit()
-#         flash('User updated successfully!', 'success')
-#         return redirect(url_for('index'))
-#     return render_template('user_form.html', form=form)
-
-# @app.route('/user/<int:id>/delete', methods=['POST'])
-# def delete_user(id):
-#     user = User.query.get_or_404(id)
-#     db.session.delete(user)
-#     db.session.commit()
-#     flash('User deleted successfully!', 'success')
-#     return redirect(url_for('index'))
-
-# # CRUD Operations for Books
-# @app.route('/book/new', methods=['GET', 'POST'])
-# def new_book():
-#     form = BookForm()
-#     if form.validate_on_submit():
-#         book = Book(title=form.title.data, author=form.author.data, user_id=form.user_id.data)
-#         db.session.add(book)
-#         db.session.commit()
-#         flash('Book created successfully!', 'success')
-#         return redirect(url_for('index'))
-#     return render_template('book_form.html', form=form)
-
-# @app.route('/book/<int:id>/edit', methods=['GET', 'POST'])
-# def edit_book(id):
-#     book = Book.query.get_or_404(id)
-#     form = BookForm(obj=book)
-#     if form.validate_on_submit():
-#         book.title = form.title.data
-#         book.author = form.author.data
-#         book.user_id = form.user_id.data
-#         db.session.commit()
-#         flash('Book updated successfully!', 'success')
-#         return redirect(url_for('index'))
-#     return render_template('book_form.html', form=form)
-
-# @app.route('/book/<int:id>/delete', methods=['POST'])
-# def delete_book(id):
-#     book = Book.query.get_or_404(id)
-#     db.session.delete(book)
-#     db.session.commit()
-#     flash('Book deleted successfully!', 'success')
-#     return redirect(url_for('index'))
+    return redirect(url_for('get_books'))
