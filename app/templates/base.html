@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Library</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='base_style.css') }}">
+    {% block styling %}{% endblock styling %}
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap');
+    </style>
 </head>
 <body>
     <nav>
@@ -13,11 +17,11 @@
         {% if current_user.is_anonymous %}
         <a href="{{ url_for('login') }}">Login</a>
         {% else %}
-        <a href="{{ url_for('add_book') }}">Add Book</a>
         <a href="{{ url_for('get_books') }}">Books</a>
         <a href="{{ url_for('user_settings') }}">Settings</a>
         <a href="{{ url_for('logout') }}">Logout</a>
         {% endif %}
+        <!--<button id="toggleTheme" onclick="toggleTheme()">Switch to Dark Mode</button>-->
     </nav>
     <hr>
     {% with messages = get_flashed_messages() %}
@@ -30,6 +34,35 @@
     {% endif %}
     {% endwith %}
     {% block content %}{% endblock content %}
+    <script>
+        // Check for saved theme in localStorage
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const theme = localStorage.getItem('theme');
+            if (theme === 'dark') {
+                document.body.classList.add('dark-mode');
+            }
+        
+            const toggleButton = document.getElementById('toggleTheme');
+            toggleButton.innerText = theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode';
+        });
+        
+        // Function to toggle between dark and light mode
+        function toggleTheme() {
+            const body = document.body;
+            const currentMode = body.classList.contains('dark-mode') ? 'dark' : 'light';
+            
+            if (currentMode === 'dark') {
+                body.classList.remove('dark-mode');
+                localStorage.setItem('theme', 'light');
+                document.getElementById('toggleTheme').innerText = 'Switch to Dark Mode';
+            } else {
+                body.classList.add('dark-mode');
+                localStorage.setItem('theme', 'dark');
+                document.getElementById('toggleTheme').innerText = 'Switch to Light Mode';
+            }
+        }
+        </script>
+        
     {% block scripts %}{% endblock scripts %}
 </body>
 </html>

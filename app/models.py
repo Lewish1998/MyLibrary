@@ -58,8 +58,8 @@ class Author(db.Model):
 
 class UserBook(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # Corrected to 'users.id'
-    book_id = db.Column(db.Integer, db.ForeignKey('book.id'), nullable=False)  # Corrected to 'books.id'
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    book_id = db.Column(db.Integer, db.ForeignKey('book.id'), nullable=False)
     current_page = db.Column(db.Integer, nullable=False, default=0)
     # Relationships
     user = db.relationship('User', back_populates='user_books')

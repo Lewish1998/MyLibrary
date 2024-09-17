@@ -1,0 +1,32 @@
+:root {
+    --black: #463F3A;
+    --grey: #7b7470;
+    --light-grey: #BCB8B1;
+    --white: #F4F3EE;
+    --highlight: #E0AFA0;
+    --highlight-dark: #c9302c;
+}
+
+* {
+    font-family: "Quicksand", sans-serif;
+    background-color: var(--white);
+    color: var(--black);
+}
+a {
+    color: var(--highlight-dark);  
+}
+a:hover {
+    color: var(--highlight);
+}
+
+/* Dark mode not working - button commented out */
+body.dark-mode {
+    background-color: var(--black);
+    color: var(--white);
+}
+body.dark-mode a {
+    color: var(--white);
+}
+body.dark-mode a:hover {
+    color: var(--highlight);
+}
