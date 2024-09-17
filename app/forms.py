@@ -57,6 +57,13 @@ class AddBook(FlaskForm):
     isbn = StringField('ISBN', validators=[Optional()])
     submit = SubmitField('Submit')
 
+class EditBook(FlaskForm):
+    title = StringField('Title', validators=[DataRequired()])
+    description = StringField('Description', validators=[Optional()])
+    pages = StringField('Pages', validators=[Optional()])
+    isbn = StringField('ISBN', validators=[Optional()])
+    submit = SubmitField('Submit')
+
 class SearchBook(FlaskForm):
     title = StringField('Title', validators=[DataRequired()])
     submit = SubmitField('Search')

@@ -3,18 +3,24 @@
 <h1>Books</h1>
 {% for book in books %}
 <div>
-    id: {{ book.id }}
-    added_by: {{ book.added_by }}
     <h3>{{ book.title }}</h3>
     {% if book.description %}
         <p>Description: {{ book.description }}</p>
     {% endif %}
     <p>Pages: {{ book.pages }}</p>
     {% if book.isbn %}
-    <p>ISBN: {{ book.isbn }}</p>
+        <p>ISBN: {{ book.isbn }}</p>
     {% endif %}
+    <p>
+        {% for user in users %}
+            {% if book.added_by == user.id %}
+                Added by: {{ user.username.title() }}
+            {% endif %}
+        {% endfor %}
+    </p>
+    <p>Added: {{ book.added.strftime('%Y/%m/%d %H:%M') }}</p>
     {% if book.added_by == current_user.id %}
-    <a href="/edit_book">Edit</a>
+        <a href="/edit_book/{{book.id}}">Edit</a>
     {% endif %}
 </div>
 {% endfor %}
