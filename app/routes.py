@@ -1,5 +1,5 @@
 from app import app, db
-from app.models import User, Book
+from app.models import User, Book, UserBook
 from app.forms import RegistrationForm, LoginForm, UserSettingsForm, AddBook, EditBook
 from flask import render_template, redirect, url_for, flash
 from flask_login import current_user, login_user, login_required, logout_user
@@ -15,8 +15,9 @@ email = os.environ.get('EMAIL')
 @app.route('/')
 @login_required
 def index():
-    books = Book.query.all()
-    return render_template('index.html', books=books, current_user=current_user)
+    user_books = UserBook.query.filter_by(user_id=current_user.id).all()
+    books = Book.query.filter_by(added_by=current_user.id).all()
+    return render_template('index.html', books=books, current_user=current_user, user_books=user_books)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -25,7 +26,7 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         user = db.session.scalar(
-            sa.select(User).where(User.username == form.username.data))
+            sa.select(User).where(User.username == form.username.data.lower()))
         if user is None or not user.check_password(form.password.data):
             flash("Invalid username or password")
             return redirect(url_for('login'))
@@ -45,7 +46,7 @@ def register():
         return redirect(url_for('index'))
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User(username=form.username.data, email=form.email.data)
+        user = User(username=form.username.data.lower(), email=form.email.data)
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
@@ -83,9 +84,9 @@ def add_book():
     form = AddBook()
     if form.validate_on_submit():
         book = Book(
-            title=form.title.data,
+            title=form.title.data.title(),
             description=form.description.data,
-            pages=form.pages.data,
+            pages=form.pages.data if form.pages.data else None,
             isbn=form.isbn.data,
             added_by=current_user.id
         )
@@ -102,10 +103,10 @@ def get_books():
     users = User.query.all()
     return render_template('books.html', books=books, current_user=current_user, users=users)
 
-@app.route('/edit_book/<int:id>', methods=['GET', 'POST'])
+@app.route('/edit_book/<int:book_id>', methods=['GET', 'POST'])
 @login_required
-def edit_book(id):
-    book = Book.query.get(id)
+def edit_book(book_id):
+    book = Book.query.get(book_id)
     if not book:
         flash('Book not found', 'error')
         return redirect(url_for('get_books'))
@@ -114,7 +115,7 @@ def edit_book(id):
     if form.validate_on_submit():
         book.title = form.title.data
         book.description = form.description.data
-        book.pages = form.pages.data
+        book.pages = form.pages.data if form.pages.data else None
         book.isbn = form.isbn.data
         book.added_by = current_user.id
         db.session.commit()
@@ -123,15 +124,40 @@ def edit_book(id):
 
     return render_template('edit_book.html', form=form, book=book)
 
-@app.route('/delete_book/<int:id>', methods=['POST'])
+@app.route('/delete_book/<int:book_id>', methods=['POST'])
 @login_required
-def delete_book(id):
-    book = Book.query.get(id)
+def delete_book(book_id):
+    book = Book.query.get(book_id)
     if not book:
         flash('Book not found', 'error')
         return redirect(url_for('get_books'))
     db.session.delete(book)
     db.session.commit()
     flash('Book deleted', 'success')
+
+    return redirect(url_for('get_books'))
+
+@app.route('/books/<int:book_id>', methods=['GET'])
+@login_required
+def book_detail(book_id):
+    book = Book.query.get_or_404(book_id)
+    return render_template('book_detail.html', book=book, current_user=current_user)
+
+@app.route('/start_reading/<int:book_id>', methods=['POST'])
+@login_required
+def start_reading(book_id):
+    book = Book.query.get(book_id)
+    if not book:
+        flash('Book not found', 'error')
+        return redirect(url_for('get_books'))
+    
+    already_reading = UserBook.query.filter_by(user_id=current_user.id, book_id=book_id).first()
+    if already_reading:
+        flash('You are already reading this book', 'info')
+    else:
+        user_book = UserBook(user_id=current_user.id, book_id=book.id)
+        db.session.add(user_book)
+        db.session.commit()
+        flash('You have started reading this book', 'success')
 
     return redirect(url_for('get_books'))

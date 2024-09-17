@@ -6,13 +6,23 @@
 <div class="index-container">
     <h1>Home</h1>
     <h3 class='welcome'>Welcome, {{ current_user.username|title}}</h3>
+    <a href="{{ url_for('add_book') }}">Add a book</a>
     <hr>
+    <div>
+        <h2>Currently Reading:</h2>
+        {% if user_books %}
+        {% for user_book in user_books %}
+        <h3><a href="/books/{{ user_book.book.id }}">{{ user_book.book.title }}</a></h3>
+        <p>Current page: {{ user_book.current_page }}</p>
+        {% endfor %}
+        {% else %}
+        <p>You are not currently reading anything</p>
+        {% endif %}
+    </div>
     <div>
         <h2>Books you've added:</h2>
         {% for book in books %}
-            {% if book.added_by == current_user.id %}
-                {{ book.title }}
-            {% endif %}
+            <h3><a href="/books/{{ book.id }}">{{ book.title }}</a></h3>
         {% endfor %}
     </div>
     <a href="/books">View all books</a>

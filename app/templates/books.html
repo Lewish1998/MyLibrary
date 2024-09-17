@@ -4,14 +4,17 @@
 {% endblock styling %}
 {% block content %}
 <h1>Books</h1>
+<a href="{{ url_for('add_book') }}">Add a book</a>
 <div class="books-container">
 {% for book in books %}
 <div class="book-item">
-    <h3>{{ book.title }}</h3>
+    <h3><a href="/books/{{ book.id }}">{{ book.title }}</a></h3>
     {% if book.description %}
         <p>Description: {{ book.description }}</p>
     {% endif %}
-    <p>Pages: {{ book.pages }}</p>
+    {% if book.pages %}
+        <p>Pages: {{ book.pages }}</p>
+    {% endif %}
     {% if book.isbn %}
         <p>ISBN: {{ book.isbn }}</p>
     {% endif %}
