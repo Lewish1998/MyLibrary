@@ -68,3 +68,6 @@ class SearchBook(FlaskForm):
     title = StringField('Title', validators=[DataRequired()])
     submit = SubmitField('Search')
     
+class UpdateCurrentlyReadingForm(FlaskForm):
+    current_page = IntegerField('Current Page', validators=[DataRequired()])
+    submit = SubmitField('Update')

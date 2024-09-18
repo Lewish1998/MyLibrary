@@ -61,6 +61,7 @@ class UserBook(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     book_id = db.Column(db.Integer, db.ForeignKey('book.id'), nullable=False)
     current_page = db.Column(db.Integer, nullable=False, default=0)
+    complete = db.Column(db.Boolean, default=False)
     # Relationships
     user = db.relationship('User', back_populates='user_books')
     book = db.relationship('Book', back_populates='user_books')
