@@ -1,5 +1,5 @@
 from app import app, db
-from app.models import User, Book, UserBook
+from app.models import User, Book, UserBook, CompletedBook, ReadingLog
 from app.forms import RegistrationForm, LoginForm, UserSettingsForm, AddBook, EditBook, UpdateCurrentlyReadingForm
 from flask import render_template, redirect, url_for, flash
 from flask_login import current_user, login_user, login_required, logout_user
@@ -18,7 +18,19 @@ def index():
     form = UpdateCurrentlyReadingForm()
     user_books = UserBook.query.filter_by(user_id=current_user.id).all()
     books = Book.query.filter_by(added_by=current_user.id).all()
-    return render_template('index.html', books=books, current_user=current_user, user_books=user_books, form=form)
+    completed_books = CompletedBook.query.filter_by(user_id=current_user.id).all()
+
+    reading_logs = (db.session.query(
+                    ReadingLog.date, 
+                    sa.func.sum(ReadingLog.pages_read).label('pages_read'))
+                .join(UserBook)
+                .filter(UserBook.user_id == current_user.id)
+                .group_by(ReadingLog.date)
+                .order_by(ReadingLog.date.desc())
+                .all())
+    return render_template('index.html', books=books, current_user=current_user, 
+                           user_books=user_books, form=form, completed_books=completed_books, 
+                           reading_logs=reading_logs)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -145,7 +157,8 @@ def book_detail(book_id):
     already_reading = UserBook.query.filter_by(user_id=current_user.id, book_id=book_id).first()
     if already_reading:
         flash('You are already reading this book', 'info')
-    return render_template('book_detail.html', book=book, current_user=current_user, already_reading=already_reading)
+    return render_template('book_detail.html', book=book, current_user=current_user, 
+                           already_reading=already_reading)
 
 @app.route('/start_reading/<int:book_id>', methods=['POST'])
 @login_required
@@ -164,7 +177,7 @@ def start_reading(book_id):
         db.session.commit()
         flash('You have started reading this book', 'success')
 
-    return redirect(url_for('get_books'))
+    return redirect(url_for('index'))
 
 @app.route('/stop_reading/<int:book_id>', methods=['POST'])
 @login_required
@@ -183,38 +196,71 @@ def stop_reading(book_id):
         flash('You are not reading this book', 'info')
 
 
-    return redirect(url_for('get_books'))
+    return redirect(url_for('index'))
 
 @app.route('/update_page/<int:user_book_id>', methods=['POST'])
 @login_required
 def update_page(user_book_id):
     user_book = UserBook.query.get_or_404(user_book_id)
+    new_page = request.form.get('current_page', type=int)
 
     # Ensure the current user is the owner of the UserBook entry
     if user_book.user_id != current_user.id:
         flash("You are not authorized to update this book.", "error")
         return redirect(url_for('index'))
-    
-    # Update the current page
-    current_page = request.form.get('current_page', type=int)
-    if current_page is not None: # Doesn't work if no pages input as non mandatory and 0 <= current_page <= user_book.book.pages:
-        user_book.current_page = current_page
+
+    # Validate the page input
+    if new_page is not None and 0 <= new_page <= user_book.book.pages:
+        # Calculate the number of pages read
+        previous_page = user_book.current_page
+        if new_page > previous_page:  # Only log if there's progress
+            pages_read = new_page - previous_page
+
+            # Log the pages read
+            reading_log = ReadingLog(user_book_id=user_book.id, pages_read=pages_read)
+            db.session.add(reading_log)
+
+        # Update the current page
+        user_book.current_page = new_page
         db.session.commit()
-        flash(f'Updated current page for {user_book.book.title} to {current_page}.', 'success')
+
+        flash(f'Updated current page for {user_book.book.title} to {new_page}.', 'success')
     else:
-        flash(f'Invalid page number.', 'error')
-    
+        flash('Invalid page number.', 'error')
+
     return redirect(url_for('index'))
 
 @app.route('/toggle_complete/<int:book_id>', methods=['POST'])
 @login_required
 def toggle_complete(book_id):
     user_book = UserBook.query.filter_by(user_id=current_user.id, book_id=book_id).first()
-    if user_book:
-        user_book.complete = not user_book.complete
-        db.session.commit()
-        flash(f'Book {"complete" if user_book.complete else "restarted"}', 'success')
-    else:
-        flash('You are not reading this book', 'error')
-
+    if not user_book:
+        flash('Book not found in currently reading', 'error')
+        return redirect(url_for('index'))
+    
+    completed_book = CompletedBook(user_id=current_user.id, book_id=user_book.book_id)
+    db.session.add(completed_book)
+    db.session.delete(user_book)
+    db.session.commit()
+    flash('Book completed', 'success')
     return redirect(url_for('index'))
+
+@app.route('/currently_reading_detail.html/<int:book_id>', methods=['GET', 'POST'])
+@login_required
+def currently_reading_detail(book_id):
+    form = UpdateCurrentlyReadingForm()
+    user_books = UserBook.query.filter_by(user_id=current_user.id).all()
+    books = Book.query.filter_by(added_by=current_user.id).all()
+    completed_books = CompletedBook.query.filter_by(user_id=current_user.id).all()
+
+    reading_logs = (db.session.query(
+                    ReadingLog.date, 
+                    sa.func.sum(ReadingLog.pages_read).label('pages_read'))
+                .join(UserBook)
+                .filter(UserBook.user_id == current_user.id)
+                .group_by(ReadingLog.date)
+                .order_by(ReadingLog.date.desc())
+                .all())
+    return render_template('currently_reading_detail.html', books=books, current_user=current_user, 
+                           user_books=user_books, form=form, completed_books=completed_books, 
+                           reading_logs=reading_logs)

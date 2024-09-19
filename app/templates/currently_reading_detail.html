@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Pages Read Per Day:</h2>
+{% if reading_logs %}
+    <ul>
+        {% for log in reading_logs %}
+            <li>
+                <strong>{{ log.date.strftime('%Y/%m/%d') }}:</strong> {{ log.pages_read }} pages
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No reading activity yet.</p>
+{% endif %}
+{% endblock content %}
