@@ -12,12 +12,53 @@
     background-color: var(--white);
     color: var(--black);
 }
+
 a {
     color: var(--highlight-dark);  
 }
+
 a:hover {
     color: var(--highlight);
 }
+
+/* input[type="submit"] {
+    background-color: var(--highlight-dark);
+    color: var(--white);
+    border: none;
+    border-radius: 5px;
+    padding: 10px 15px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+input[type="submit"]:hover {
+    background-color: var(--highlight);
+} */
+
+button {
+    background-color: var(--highlight-dark); 
+    border: none;               
+    color: white;              
+    padding: 10px 20px;    
+    text-align: center;        
+    text-decoration: none;  
+    display: inline-block;  
+    font-size: 16px;         
+    border-radius: 5px;    
+    cursor: pointer; 
+    transition: background-color 0.3s ease; 
+}
+
+button:hover {
+    background-color: var(--highlight); 
+}
+
+button:disabled {
+    background-color: #ccc;  
+    cursor: not-allowed;       
+}
+
 
 /* Dark mode not working - button commented out */
 body.dark-mode {

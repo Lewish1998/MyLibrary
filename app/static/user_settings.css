@@ -31,7 +31,7 @@ input[type="email"] {
 }
 
 input[readonly] {
-    background-color: #f9f9f9; /* Light background for read-only fields */
+    background-color: var(--light-grey); /* Light background for read-only fields */
     cursor: not-allowed; /* Change cursor to indicate read-only */
 }
 

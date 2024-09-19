@@ -12,15 +12,21 @@
     {% endfor %}
 </p>
 <p>Added: {{ book.added.strftime('%Y/%m/%d %H:%M') }}</p>
+
 {% if book.added_by == current_user.id %}
-
-{% if current_user.is_authenticated %}
-<!-- Button to start reading -->
-<form action="{{ url_for('start_reading', book_id=book.id) }}" method="POST">
-    <button type="submit">Start Reading</button>
-</form>
-{% endif %}
-
 <a href="/edit_book/{{book.id}}">Edit</a>
 {% endif %}
+
+{% if current_user.is_authenticated %}
+    {% if book.id == already_reading.book_id %}
+        <form action="{{ url_for('stop_reading', book_id=book.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to stop reading this book?\nThis cannot be undone');">
+            <button type="submit">Stop Reading</button>
+        </form>
+    {% else %}
+        <form action="{{ url_for('start_reading', book_id=book.id) }}" method="POST">
+            <button type="submit">Start Reading</button>
+        </form>
+    {% endif %}
+{% endif %}
+
 {% endblock content %}

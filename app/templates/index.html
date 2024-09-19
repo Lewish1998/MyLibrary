@@ -5,20 +5,52 @@
 {% block content %}
 <div class="index-container">
     <h1>Home</h1>
-    <h3 class='welcome'>Welcome, {{ current_user.username|title}}</h3>
+    <h3 class='welcome'>Welcome, {{ current_user.username|title }}</h3>
     <a href="{{ url_for('add_book') }}">Add a book</a>
     <hr>
     <div>
         <h2>Currently Reading:</h2>
         {% if user_books %}
-        {% for user_book in user_books %}
-        <h3><a href="/books/{{ user_book.book.id }}">{{ user_book.book.title }}</a></h3>
-        <p>Current page: {{ user_book.current_page }}</p>
-        {% endfor %}
+            {% for user_book in user_books %}
+                <h3><a href="/books/{{ user_book.book.id }}">{{ user_book.book.title }}</a></h3>
+                <h4><a href="/currently_reading_detail.html/{{ user_book.book.id }}">View Details</a></h4>
+                <p>
+                    Current page: {{ user_book.current_page }}
+                    {% if user_book.book.pages %}
+                        / {{ user_book.book.pages }}
+                    {% endif %}
+                </p>
+                <p>Started on: {{ user_book.date_started.strftime('%Y/%m/%d') }}</p>
+        
+                <form action="{{ url_for('update_page', user_book_id=user_book.id) }}" method="POST">
+                    {{ form.hidden_tag() }}
+                    <label for="current_page">Update current page:</label>
+                    <input type="number" name="current_page" value="{{ user_book.current_page }}" min="0" max="{{ user_book.book.pages }}">
+                    <button type="submit">Update</button>
+                </form>
+        
+                <form action="{{ url_for('toggle_complete', book_id=user_book.book.id) }}" method='POST'>
+                    {{ form.hidden_tag() }}
+                    <button type='submit'>Mark as Complete</button>
+                </form>
+            {% endfor %}
         {% else %}
-        <p>You are not currently reading anything</p>
+            <p>No books currently being read.</p>
         {% endif %}
     </div>
+
+    <div>
+        <h2>Completed books:</h2>
+        {% if completed_books %}
+            {% for completed_book in completed_books %}
+                <h3><a href="/books/{{ completed_book.book.id }}">{{ completed_book.book.title }}</a></h3>
+                <p>Completed on: {{ completed_book.date_completed.strftime('%Y/%m/%d') }}</p>
+            {% endfor %}
+        {% else %}
+            <p>No books completed</p>
+        {% endif %}
+    </div>
+
     <div>
         <h2>Books you've added:</h2>
         {% for book in books %}

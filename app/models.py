@@ -9,14 +9,14 @@ from werkzeug.security import generate_password_hash, check_password_hash
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100), nullable=False, unique=True)
     bio = db.Column(db.String(264), nullable=True)
-    created_at = db.Column(db.DateTime(timezone=True), server_default=func.now()) # Unsure if will work
-    updated_at = db.Column(db.DateTime(timezone=True), onupdate=func.now()) # Unsure if will work
+    created_at = db.Column(db.DateTime(timezone=True), server_default=func.now()) 
+    updated_at = db.Column(db.DateTime(timezone=True), onupdate=func.now()) 
     password_hash = db.Column(db.String(264), nullable=False)
 
-   # Relationship to UserBook
     user_books = db.relationship('UserBook', back_populates='user')
+    completed_books = db.relationship('CompletedBook', back_populates='user')
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -43,6 +43,8 @@ class Book(db.Model):
     genre = db.relationship('Genre', back_populates='books')
     user_books = db.relationship('UserBook', back_populates='book')
 
+    completed_books = db.relationship('CompletedBook', back_populates='book')
+
 class Genre(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -60,7 +62,28 @@ class UserBook(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     book_id = db.Column(db.Integer, db.ForeignKey('book.id'), nullable=False)
+    date_started = db.Column(db.DateTime(timezone=True), server_default=func.now())
     current_page = db.Column(db.Integer, nullable=False, default=0)
+    complete = db.Column(db.Boolean, default=False)
     # Relationships
     user = db.relationship('User', back_populates='user_books')
     book = db.relationship('Book', back_populates='user_books')
+    reading_logs = db.relationship('ReadingLog', back_populates='user_book', cascade="all, delete-orphan")
+
+class CompletedBook(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    book_id = db.Column(db.Integer, db.ForeignKey('book.id'), nullable=False)
+    date_completed = db.Column(db.DateTime(timezone=True), server_default=func.now())
+    
+    # Relationships
+    user = db.relationship('User', back_populates='completed_books')
+    book = db.relationship('Book', back_populates='completed_books')
+
+class ReadingLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_book_id = db.Column(db.Integer, db.ForeignKey('user_book.id'), nullable=False)
+    date = db.Column(db.Date, nullable=False, default=func.current_date())
+    pages_read = db.Column(db.Integer, nullable=False)
+
+    user_book = db.relationship('UserBook', back_populates='reading_logs')
